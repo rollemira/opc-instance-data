@@ -1,0 +1,21 @@
+{
+  "name": "opc-inspector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.6.2",
+    "axios": "^0.18.0",
+    "bluebird": "^3.5.3",
+    "csv": "^5.1.1",
+    "dotenv-defaults": "^1.0.2",
+    "lodash": "^4.17.11",
+    "readline-sync": "^1.4.9"
+  }
+}
