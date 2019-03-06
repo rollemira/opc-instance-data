@@ -273,21 +273,34 @@ function loginToApi(cb) {
         });
 };
 
+function sanitizeData(target, data) {
+    //here we take out administrator_password for windows instances
+    if (target.url.indexOf('/instance/') !== -1) {
+        _.each(data.result, (instance) => {
+            if (_.has(instance, 'attributes.userdata.administrator_password')) {
+                delete instance.attributes.userdata.administrator_password;
+            }
+        });
+    }
+    return data;
+};
+
 function pullApiData(headers, cb) {
     cleanOutputDir();
     let operations = {};
     for (let i = 0; i < apiTargets.length; i++) {
-        const item = apiTargets[i];
-        operations[item.file.split('.')[0]] = (callback) => {
-            session.get(item.url, {
+        const target = apiTargets[i];
+        operations[target.file.split('.')[0]] = (callback) => {
+            session.get(target.url, {
                     headers //set the nimbula cookie
                 })
                 .then((res) => {
-                    logJsonData(item.file, res.data);
-                    console.log(`Success: ${item.file}`);
+                    let item = sanitizeData(target, res.data);
+                    logJsonData(target.file, item);
+                    console.log(`Success: ${target.file}`);
                 })
                 .catch((error) => {
-                    console.log(`Fail: ${item.file}`);
+                    console.log(`Fail: ${target.file}`);
                     axiosError(error);
                 })
                 .finally(() => {
@@ -321,6 +334,7 @@ function prepCsv(cb) {
         '"Instance"',
         '"State"',
         '"Private IP"',
+        '"Shape"',
         '"OCPU"',
         '"Memory"',
         '"Volume Count"',
@@ -332,7 +346,7 @@ function prepCsv(cb) {
     cb(null);
 };
 
-function writeDriveCounts(cb) {
+function writeCsvData(cb) {
     const instances = JSON.parse(fs.readFileSync(`${outputDir}/instance.json`));
     const volumes = JSON.parse(fs.readFileSync(`${outputDir}/storage_volume.json`));
     const shapes = JSON.parse(fs.readFileSync(`${outputDir}/shape.json`));
@@ -351,6 +365,7 @@ function writeDriveCounts(cb) {
             instance.name,
             instance.state,
             instance.ip,
+            instance.shape,
             shape.cpus,
             formatBytes(shape.ram * 1024 * 1024),
             instance.storage_attachments.length,
@@ -367,5 +382,5 @@ async.waterfall([
     loginToApi,
     pullApiData,
     prepCsv,
-    writeDriveCounts
+    writeCsvData
 ]);
