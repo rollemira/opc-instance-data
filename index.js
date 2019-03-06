@@ -15,7 +15,7 @@ const apiUrl = process.env.API_URL;
 const serviceInstanceId = process.env.SERVICE_INSTANCE_ID;
 const serviceContainer = `/Compute-${serviceInstanceId}/`;
 const parallelLimit = process.env.PARALLEL_LIMIT;
-const sanitizeNames = process.env.SANITIZE_NAMES;
+const sanitizeNames = process.env.SANITIZE_NAMES === 'true';
 const csvName = process.env.CSV_FILE_NAME;
 const csvPath = `${outputDir}/${csvName}`;
 
@@ -279,11 +279,10 @@ function sanitizeData(target, data) {
     let tmp = JSON.stringify(data);
     //here we take out administrator_password for windows instances
     if (target.url.indexOf('/instance/') !== -1) {
-        console.log(tmp);
         tmp = tmp.replace(/"administrator_password":"(.+?)"/ig, '"administrator_password":"[redacted]"');
     }
     //sanitize names (emails) if configured
-    if (sanitizeNames && _.has(data, 'result')) {
+    if (sanitizeNames) {
         tmp = tmp
             .replace(/\/([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)\//ig, '/[redacted]/')
             .replace(/\/([a-zA-Z0-9_\-\.]+)%40((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)\//ig, '/[redacted]/');
